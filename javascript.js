@@ -1,4 +1,5 @@
 
+/*************** PLAYER DATA ****************/
 class Player {
     #name;
     #role;
@@ -37,6 +38,7 @@ class Player {
     }
 }
 
+/*************** GAME BOARD ****************/
 let gameboard = (function() {
     let board;
     let lastInsertion = null;
@@ -82,7 +84,7 @@ let gameboard = (function() {
                 (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[0][0] !== ' ') ||
                 (board[2][0] === board[1][1] && board[1][1] === board[0][2] && board[2][0] !== ' '));
     }
-    function isDraw() {
+    function isBoardFull() {
         return (!board[0].includes(' ') && !board[1].includes(' ') && !board[2].includes(' '));
     }
     function isEmpty() {
@@ -99,13 +101,93 @@ let gameboard = (function() {
         isPositionEmpty,
         isEmpty,
         isWinner,
-        isDraw,
+        isBoardFull,
         boardPositions
     }
 })();
 
+/*************** DISPLAY MODULE ****************/
+let displayModule = (function(gameboard) {
 
-let gameController = (function(gameboard){
+    let player1;
+    let player2;
+
+    // Cache DOM
+    let playerOneContainer = document.querySelector('.player1-container');
+    let playerTwoContainer = document.querySelector('.player2-container');
+    let playerOneName = document.querySelector('.player1-name');
+    let playerTwoName = document.querySelector('.player2-name');
+    let playerOneRole = document.querySelector('.player1-container .role');
+    let playerTwoRole = document.querySelector('.player2-container .role');
+    let playerOneScore = document.querySelector('.player1-container .score');
+    let playerTwoScore = document.querySelector('.player2-container .score');
+    let resetScoresButton = document.querySelector('.reset-scores-button');
+    let newGameButton = document.querySelector('.new-game-button');
+    let cells = document.querySelectorAll('.cell');
+
+    function initialize(playerOne, playerTwo) {
+        player1 = playerOne;
+        player2 = playerTwo;
+        render();
+    }
+    function bindEvents(newGame, resetScores, playTurn) {
+        // Buttons
+        resetScoresButton.addEventListener("click", resetScores);
+        newGameButton.addEventListener("click", newGame);
+        // Cell clicking functionality
+        cells.forEach(cell => {
+            cell.addEventListener("click", e => {
+                if(gameboard.isBoardFull() || gameboard.isWinner()) {
+                    console.warn("Game is over. Please start a New Game");
+                    return;
+                }
+                if (gameboard.isPositionEmpty(gameboard.boardPositions[e.target.getAttribute('name')])) {
+                    player1.isTurn ? cell.style.color = "#9F9FFF" :
+                                     cell.style.color = "#FFA0A0";
+                } 
+                playTurn(gameboard.boardPositions[e.target.getAttribute('name')]); 
+            });
+        });
+    }
+    function render() {
+        // Player data
+        _refreshPlayerData();
+        // Display
+        _refreshCells();
+    }
+    function _refreshCells() {
+        for(key in gameboard.boardPositions) {
+            let cell = document.querySelector(`.cell[name="${key}"]`);
+            cell.textContent = gameboard.getBoard()
+                [gameboard.boardPositions[key][0]]
+                [gameboard.boardPositions[key][1]];
+        }
+    }
+    function _refreshPlayerData() {
+        playerOneName.textContent = player1.name;
+        playerTwoName.textContent = player2.name;
+        playerOneRole.textContent = `Role: ${player1.role}`;
+        playerTwoRole.textContent = `Role: ${player2.role}`;
+        playerOneScore.textContent = `Score: ${player1.score}`;
+        playerTwoScore.textContent = `Score: ${player2.score}`;
+        if(player1.isTurn) {
+            playerOneContainer.classList.add('current-player-highlight');
+            playerTwoContainer.classList.remove('current-player-highlight');
+        }else {
+            playerOneContainer.classList.remove('current-player-highlight');
+            playerTwoContainer.classList.add('current-player-highlight');
+        }
+    }   
+    return {
+        initialize,
+        render,
+        bindEvents,
+    }
+
+})(gameboard);
+
+/*************** GAME CONTROLLER ****************/
+let gameController = (function(gameboard, displayModule){
 
     let player1;
     let player2;
@@ -114,6 +196,8 @@ let gameController = (function(gameboard){
         player1 = playerOne;
         player2 = playerTwo;
         _initializePlayers();
+        displayModule.initialize(player1, player2);
+        displayModule.bindEvents(resetGame, resetScores, playTurn);
     }
     function _initializePlayers() {
         // Randomly choose role
@@ -126,19 +210,21 @@ let gameController = (function(gameboard){
     function _evalulateGame() {
         if(gameboard.isWinner()) {
             let winner = player1.isTurn ? player1 : player2;
-            console.warn(`The winner is ${winner.name}!!!`);
+            setTimeout(() => alert(`The winner is ${winner.name}!!!`), 0);
             winner.incrementScore();
-        } else if(gameboard.isDraw()) {
-            console.warn(`The game is a draw!`);
+        } else if(gameboard.isBoardFull()) {
+            setTimeout(() => alert(`The game is a draw!`), 0);
         }
     }
     function resetGame() {
         gameboard.resetBoard();
         _initializePlayers();
+        displayModule.render();
     }
     function resetScores() {
         player1.resetScore();
         player2.resetScore();
+        displayModule.render();
     }
     function displayScores() {
         console.log(`${player1.name}: ${player1.score}`);
@@ -151,19 +237,18 @@ let gameController = (function(gameboard){
         console.log(gameboard.getBoard()[2].join("  "));
     }
     function playTurn(boardPosition) {
-        if(gameboard.isWinner() || gameboard.isDraw()) {
-            resetGame();
-        }
         if(gameboard.isPositionEmpty(boardPosition)) {
             let player = player1.isTurn ? player1 : player2;
             gameboard.insertOnBoard(player, boardPosition);
-            printGameStateToConsole();
             _evalulateGame();
-            player1.isTurn = !player1.isTurn;
-            player2.isTurn = !player2.isTurn;
+            if(!gameboard.isWinner()) {
+                player1.isTurn = !player1.isTurn;
+                player2.isTurn = !player2.isTurn;
+            }
         } else {
             console.warn("Position is not empty. No action taken");
         }
+        displayModule.render();
     }
     return {
         setPlayers,
@@ -174,25 +259,15 @@ let gameController = (function(gameboard){
         printGameStateToConsole
     }
     
-})(gameboard);
-
-
-
+})(gameboard, displayModule);
 
 
 
 
 gameController.setPlayers(new Player("Jayden"), new Player("Steph"));
 
-gameController.playTurn(gameboard.boardPositions.topLeft);
-gameController.playTurn(gameboard.boardPositions.middle);
-gameController.playTurn(gameboard.boardPositions.bottomRight);
-gameController.playTurn(gameboard.boardPositions.bottomMiddle);
-gameController.playTurn(gameboard.boardPositions.topMiddle);
-gameController.playTurn(gameboard.boardPositions.topRight);
-gameController.playTurn(gameboard.boardPositions.bottomLeft);
-gameController.playTurn(gameboard.boardPositions.middleRight);
-gameController.playTurn(gameboard.boardPositions.middleLeft);
+
+
 
 
 
