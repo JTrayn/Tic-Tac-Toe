@@ -210,10 +210,16 @@ let gameController = (function(gameboard, displayModule){
     function _evalulateGame() {
         if(gameboard.isWinner()) {
             let winner = player1.isTurn ? player1 : player2;
-            setTimeout(() => alert(`The winner is ${winner.name}!!!`), 0);
+            setTimeout(() => {
+                alert(`The winner is ${winner.name}!!!`);
+                resetGame();
+            }, 0);
             winner.incrementScore();
         } else if(gameboard.isBoardFull()) {
-            setTimeout(() => alert(`The game is a draw!`), 0);
+            setTimeout(() => {
+                alert(`The game is a draw!`);
+                resetGame();
+            }, 0);
         }
     }
     function resetGame() {
@@ -241,7 +247,7 @@ let gameController = (function(gameboard, displayModule){
             let player = player1.isTurn ? player1 : player2;
             gameboard.insertOnBoard(player, boardPosition);
             _evalulateGame();
-            if(!gameboard.isWinner()) {
+            if(!gameboard.isWinner() && !gameboard.isBoardFull()) {
                 player1.isTurn = !player1.isTurn;
                 player2.isTurn = !player2.isTurn;
             }
