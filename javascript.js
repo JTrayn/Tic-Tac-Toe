@@ -6,9 +6,7 @@ class Player {
     #isTurn;
     constructor(name) {
         this.#name = name;
-        this.#role = null;
         this.#score = 0;
-        this.#isTurn = null;
     }
     get name() {
         return this.#name;
@@ -84,6 +82,9 @@ let gameboard = (function() {
                 (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[0][0] !== ' ') ||
                 (board[2][0] === board[1][1] && board[1][1] === board[0][2] && board[2][0] !== ' '));
     }
+    function isDraw() {
+        return (!board[0].includes(' ') && !board[1].includes(' ') && !board[2].includes(' '));
+    }
     function isEmpty() {
         return lastInsertion === null;
     }
@@ -98,6 +99,7 @@ let gameboard = (function() {
         isPositionEmpty,
         isEmpty,
         isWinner,
+        isDraw,
         boardPositions
     }
 })();
@@ -126,6 +128,8 @@ let gameController = (function(gameboard){
             let winner = player1.isTurn ? player1 : player2;
             console.warn(`The winner is ${winner.name}!!!`);
             winner.incrementScore();
+        } else if(gameboard.isDraw()) {
+            console.warn(`The game is a draw!`);
         }
     }
     function resetGame() {
@@ -140,13 +144,20 @@ let gameController = (function(gameboard){
         console.log(`${player1.name}: ${player1.score}`);
         console.log(`${player2.name}: ${player2.score}`);
     }
+    function printGameStateToConsole() {
+        console.log(`${player1.name} (${player1.role}) | ${player2.name} (${player2.role})`);
+        console.log(gameboard.getBoard()[0].join("  "));
+        console.log(gameboard.getBoard()[1].join("  "));
+        console.log(gameboard.getBoard()[2].join("  "));
+    }
     function playTurn(boardPosition) {
-        if(gameboard.isWinner()) {
+        if(gameboard.isWinner() || gameboard.isDraw()) {
             resetGame();
         }
         if(gameboard.isPositionEmpty(boardPosition)) {
             let player = player1.isTurn ? player1 : player2;
             gameboard.insertOnBoard(player, boardPosition);
+            printGameStateToConsole();
             _evalulateGame();
             player1.isTurn = !player1.isTurn;
             player2.isTurn = !player2.isTurn;
@@ -159,7 +170,8 @@ let gameController = (function(gameboard){
         playTurn,
         resetGame,
         resetScores,
-        displayScores
+        displayScores,
+        printGameStateToConsole
     }
     
 })(gameboard);
@@ -168,12 +180,24 @@ let gameController = (function(gameboard){
 
 
 
-let player1 = new Player("Jayden");
-let player2 = new Player("Bob");
 
-gameController.setPlayers(player1, player2);
 
+gameController.setPlayers(new Player("Jayden"), new Player("Steph"));
+
+gameController.playTurn(gameboard.boardPositions.topLeft);
 gameController.playTurn(gameboard.boardPositions.middle);
+gameController.playTurn(gameboard.boardPositions.bottomRight);
+gameController.playTurn(gameboard.boardPositions.bottomMiddle);
+gameController.playTurn(gameboard.boardPositions.topMiddle);
+gameController.playTurn(gameboard.boardPositions.topRight);
+gameController.playTurn(gameboard.boardPositions.bottomLeft);
+gameController.playTurn(gameboard.boardPositions.middleRight);
+gameController.playTurn(gameboard.boardPositions.middleLeft);
 
-console.log(gameboard.getBoard());
+
+
+
+
+
+
 
