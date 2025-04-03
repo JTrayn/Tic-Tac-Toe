@@ -232,10 +232,6 @@ let gameController = (function(gameboard, displayModule){
         player2.resetScore();
         displayModule.render();
     }
-    function displayScores() {
-        console.log(`${player1.name}: ${player1.score}`);
-        console.log(`${player2.name}: ${player2.score}`);
-    }
     function printGameStateToConsole() {
         console.log(`${player1.name} (${player1.role}) | ${player2.name} (${player2.role})`);
         console.log(gameboard.getBoard()[0].join("  "));
@@ -261,7 +257,6 @@ let gameController = (function(gameboard, displayModule){
         playTurn,
         resetGame,
         resetScores,
-        displayScores,
         printGameStateToConsole
     }
     
