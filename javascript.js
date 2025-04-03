@@ -71,18 +71,18 @@ let gameboard = (function() {
         lastInsertion = null;
     }
     function isPositionEmpty(boardPosition) {
-        return board[boardPosition[0]][boardPosition[1]] === " " ? true : false;
+        return board[boardPosition[0]][boardPosition[1]] === " ";
     }
     function isWinner() {
         return  (!isEmpty() &&
-                (board[0].every(element => element === board[0][0]) && board[0][0] !== ' ') ||
-                (board[1].every(element => element === board[1][0]) && board[1][0] !== ' ') ||
-                (board[2].every(element => element === board[2][0]) && board[2][0] !== ' ') || 
-                (board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[0][0] !== ' ') ||
-                (board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[0][1] !== ' ') ||
-                (board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[0][2] !== ' ') ||
-                (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[0][0] !== ' ') ||
-                (board[2][0] === board[1][1] && board[1][1] === board[0][2] && board[2][0] !== ' '));
+                (board[0].every(element => element === board[0][0]) && board[0][0] !== ' ') ||          // top row
+                (board[1].every(element => element === board[1][0]) && board[1][0] !== ' ') ||          // middle row
+                (board[2].every(element => element === board[2][0]) && board[2][0] !== ' ') ||          // bottom row
+                (board[0][0] === board[1][0] && board[1][0] === board[2][0] && board[0][0] !== ' ') ||  // left column
+                (board[0][1] === board[1][1] && board[1][1] === board[2][1] && board[0][1] !== ' ') ||  // middle column
+                (board[0][2] === board[1][2] && board[1][2] === board[2][2] && board[0][2] !== ' ') ||  // right column
+                (board[0][0] === board[1][1] && board[1][1] === board[2][2] && board[0][0] !== ' ') ||  // diagonal TL to BR
+                (board[2][0] === board[1][1] && board[1][1] === board[0][2] && board[2][0] !== ' '));   // diagonal BL to TR
     }
     function isBoardFull() {
         return (!board[0].includes(' ') && !board[1].includes(' ') && !board[2].includes(' '));
@@ -207,7 +207,7 @@ let gameController = (function(gameboard, displayModule){
         player1.isTurn = Math.random() >= 0.5 ? true : false;
         player2.isTurn = !player1.isTurn;
     }
-    function _evalulateGame() {
+    function _evaluateGame() {
         if(gameboard.isWinner()) {
             let winner = player1.isTurn ? player1 : player2;
             setTimeout(() => {
@@ -246,7 +246,7 @@ let gameController = (function(gameboard, displayModule){
         if(gameboard.isPositionEmpty(boardPosition)) {
             let player = player1.isTurn ? player1 : player2;
             gameboard.insertOnBoard(player, boardPosition);
-            _evalulateGame();
+            _evaluateGame();
             if(!gameboard.isWinner() && !gameboard.isBoardFull()) {
                 player1.isTurn = !player1.isTurn;
                 player2.isTurn = !player2.isTurn;
